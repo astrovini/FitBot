@@ -1,37 +1,57 @@
 # Fitbot - AI-Powered Fitness Application
 
-A web-based fitness application that provides personalized workout recommendations using AI and BMI calculations.
+A web-based fitness application that provides personalized workout recommendations using AI and BMI calculations with Supabase Edge Functions.
 
 ## Features
 
-- User registration with fitness metrics
+- User registration with fitness metrics (name, surname, age, height, weight)
 - BMI calculation and categorization
-- AI-powered fitness recommendations via OpenAI
-- Supabase backend integration
+- AI-powered fitness recommendations via OpenAI API
+- Supabase backend with Edge Functions
+- Support for both OpenAI Responses API (GPT-5) and Chat Completions API (GPT-4o-mini)
 
 ## Project Structure
 
 ```
 fitbot/
 ├── README.md
+├── .gitignore
 ├── src/
-│   ├── user-registration.html    # User registration form
-│   ├── bmi-calculator.html       # BMI calculation page
-│   └── ai-fitness-advisor.html   # AI recommendations page
+│   ├── user-registration.html     # User registration form
+│   ├── bmi-calculator.html        # BMI calculation page
+│   ├── ai-fitness-advisor.html    # AI recommendations page
+│   └── test-gpt.html             # API testing interface
 └── supabase/
     └── functions/
-        └── ai-fitness-advisor/
-            └── index.ts          # Edge function for AI processing
+        ├── ai-fitness-advisor/
+        │   └── index.ts           # Main AI fitness advisor function
+        ├── test-gpt/
+        │   └── index.ts           # GPT-5 API test function
+        └── test-gpt-old-api/
+            └── index.ts           # GPT-4o-mini API test function
 ```
 
 ## Setup
 
-1. Create a Supabase project
-2. Create Users table with columns: id, name, surname, age, height, weight, created_at
-3. Get your Supabase URL and anon key
-4. Get OpenAI API key
-5. Deploy the Edge Function to Supabase
-6. Update HTML files with your Supabase credentials
+### 1. Supabase Setup
+- Create a Supabase project
+- Create Users table (see schema below)
+- Get your Supabase URL and anon key
+- Set up environment variables in Supabase Edge Functions
+
+### 2. OpenAI Setup
+- Get OpenAI API key from https://platform.openai.com/api-keys
+- Add credits to your OpenAI account
+- Set `OPENAI_API_KEY` secret in Supabase dashboard
+
+### 3. Deploy Edge Functions
+Deploy the functions to Supabase:
+- `ai-fitness-advisor` - Main fitness recommendations
+- `test-gpt` - GPT-5 API testing
+- `test-gpt-old-api` - GPT-4o-mini API testing
+
+### 4. Configure HTML Files
+Update Supabase URL and anon key in all HTML files.
 
 ## Database Schema
 
@@ -46,10 +66,37 @@ create table public."Users" (
   height real null,
   constraint Users_pkey primary key (id)
 );
+
+-- Disable RLS for development (enable for production)
+ALTER TABLE public."Users" DISABLE ROW LEVEL SECURITY;
 ```
+
+## Environment Variables
+
+Set in Supabase Edge Functions secrets:
+- `OPENAI_API_KEY` - Your OpenAI API key
+
+Built-in Supabase variables (automatically available):
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Usage
 
-1. Register users via `user-registration.html`
-2. Calculate BMI via `bmi-calculator.html`
-3. Get AI recommendations via `ai-fitness-advisor.html`
+1. **Register users**: Open `user-registration.html` and add user data
+2. **Calculate BMI**: Use `bmi-calculator.html` with user ID
+3. **Get AI recommendations**: Use `ai-fitness-advisor.html` for personalized fitness advice
+4. **Test APIs**: Use `test-gpt.html` to test both OpenAI API versions
+
+## API Endpoints
+
+- `/functions/v1/ai-fitness-advisor` - Get personalized fitness recommendations
+- `/functions/v1/test-gpt` - Test GPT-5 with Responses API
+- `/functions/v1/test-gpt-old-api` - Test GPT-4o-mini with Chat Completions API
+
+## Development Notes
+
+- Uses OpenAI's new Responses API for GPT-5 (recommended)
+- Falls back to Chat Completions API for GPT-4o-mini (cheaper)
+- All functions include CORS headers for browser compatibility
+- Comprehensive error handling and logging for debugging

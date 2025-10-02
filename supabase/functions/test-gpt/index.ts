@@ -13,6 +13,10 @@ serve(async (req) => {
   try {
     const apiKey = Deno.env.get('OPENAI_API_KEY')
 
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY not found in environment')
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -20,12 +24,9 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [{
-          role: 'user',
-          content: 'Say hello world'
-        }],
-        max_tokens: 50
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Say hello world' }],
+        max_tokens: 10
       })
     })
 
@@ -33,7 +34,10 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        message: data.choices[0].message.content
+        success: response.ok,
+        status: response.status,
+        message: data.choices?.[0]?.message?.content || 'No message content',
+        fullResponse: data
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

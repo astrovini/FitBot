@@ -11,25 +11,29 @@
         .result { margin-top: 20px; padding: 15px; border-radius: 4px; background: #f8f9fa; border: 1px solid #dee2e6; }
         .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .loading { color: #6c757d; }
+        pre { background: #f1f1f1; padding: 10px; border-radius: 4px; overflow-x: auto; }
     </style>
 </head>
 <body>
     <h2>Test GPT Function</h2>
     
-    <button onclick="testGPT()">Test GPT-4</button>
+    <button onclick="testGPT('test-gpt')">Test GPT-5 (New API)</button>
+    <button onclick="testGPT('test-gpt-old-api')">Test GPT-4o-mini (Old API)</button>
     
     <div id="result"></div>
 
     <script>
         const SUPABASE_URL = 'https://hcfkeheuysmykrljhcjh.supabase.co';
         
-        async function testGPT() {
+        async function testGPT(functionName) {
             const resultDiv = document.getElementById('result');
             
-            resultDiv.innerHTML = '<div class="result loading">Testing GPT...</div>';
+            resultDiv.innerHTML = `<div class="result loading">Testing ${functionName}...</div>`;
             
             try {
-                const response = await fetch(`${SUPABASE_URL}/functions/v1/test-gpt`, {
+                console.log('Making request to:', `${SUPABASE_URL}/functions/v1/${functionName}`);
+                
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -37,22 +41,30 @@
                     }
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (response.ok) {
                     resultDiv.innerHTML = `
                         <div class="result">
-                            <h3>GPT Response:</h3>
-                            <p>${data.message}</p>
+                            <h3>${functionName} Response:</h3>
+                            <p>${data.message || 'No message'}</p>
+                            <h4>Full Response:</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
                         </div>
                     `;
                 } else {
-                    throw new Error(data.error);
+                    throw new Error(data.error || 'Unknown error');
                 }
             } catch (error) {
+                console.error('Error:', error);
                 resultDiv.innerHTML = `
                     <div class="result error">
                         <p>Error: ${error.message}</p>
+                        <p>Check browser console for details</p>
                     </div>
                 `;
             }
