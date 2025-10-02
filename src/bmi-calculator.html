@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; background: #f8f9fa; border: 1px solid #dee2e6; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h2>BMI Calculator</h2>
+    
+    <form id="bmiForm">
+        <div class="form-group">
+            <label for="userId">User ID:</label>
+            <input type="number" id="userId" name="userId" required>
+        </div>
+        
+        <button type="submit">Calculate BMI</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://hcfkeheuysmykrljhcjh.supabase.co';
+        
+        document.getElementById('bmiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/calculate-bmi`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjZmtlaGV1eXNteWtybGpoY2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3Njk5NzcsImV4cCI6MjA3NDM0NTk3N30.WPkWkWZQ7by5tF8bigHscHuAQ7mH6NPBUhKxCA0KWao`
+                    },
+                    body: JSON.stringify({ userId: parseInt(userId) })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="result">
+                            <h3>${data.user}</h3>
+                            <p><strong>Height:</strong> ${data.height} cm</p>
+                            <p><strong>Weight:</strong> ${data.weight} kg</p>
+                            <p><strong>BMI:</strong> ${data.bmi}</p>
+                            <p><strong>Category:</strong> ${data.category}</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="result error">
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
