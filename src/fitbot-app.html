@@ -197,7 +197,83 @@
                     throw new Error('No user logged in');
                 }
 
-                // Get full form structure
+                // Check existing questionnaire status
+                const statusResponse = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'getStatus',
+                        userId: currentUser.id
+                    })
+                });
+
+                const statusData = await statusResponse.json();
+                if (!statusResponse.ok) throw new Error(statusData.error);
+
+                if (statusData.status === 'completed') {
+                    renderQuestionnaireStatus('completed', statusData.run);
+                } else if (statusData.status === 'in_progress') {
+                    renderQuestionnaireStatus('in_progress', statusData.run);
+                } else {
+                    renderQuestionnaireStatus('not_started');
+                }
+
+            } catch (error) {
+                console.error('Questionnaire error:', error);
+                document.getElementById('questionnaireContainer').innerHTML = 
+                    `<div class="result error">Error loading questionnaire: ${error.message}</div>`;
+            }
+        }
+
+        function renderQuestionnaireStatus(status, run = null) {
+            const container = document.getElementById('questionnaireContainer');
+            
+            if (status === 'completed') {
+                container.innerHTML = `
+                    <div class="result success">
+                        <h4>✅ Questionnaire Completed</h4>
+                        <p>You completed the questionnaire on ${new Date(run.submitted_at).toLocaleDateString()}</p>
+                        <button onclick="editQuestionnaire()" style="margin-top: 10px;">Edit Answers</button>
+                    </div>
+                `;
+            } else if (status === 'in_progress') {
+                container.innerHTML = `
+                    <div class="result info">
+                        <h4>📝 Questionnaire In Progress</h4>
+                        <p>You have a saved questionnaire from ${new Date(run.started_at).toLocaleDateString()}</p>
+                        <button onclick="continueQuestionnaire()" style="margin-right: 10px;">Continue</button>
+                        <button onclick="startNewQuestionnaire()" style="background: #6c757d;">Start Over</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="result info">
+                        <h4>👋 Welcome! Complete Your Profile</h4>
+                        <p>Please fill out this questionnaire to get personalized recommendations. You can save and finish later.</p>
+                        <button onclick="startNewQuestionnaire()">Start Questionnaire</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function startNewQuestionnaire() {
+            await loadAndRenderQuestionnaire();
+        }
+
+        async function continueQuestionnaire() {
+            await loadAndRenderQuestionnaire(true);
+        }
+
+        async function editQuestionnaire() {
+            await loadAndRenderQuestionnaire(true);
+        }
+
+        async function loadAndRenderQuestionnaire(loadExisting = false) {
+            try {
+                // Get form structure
                 const formResponse = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
                     method: 'POST',
                     headers: {
@@ -211,10 +287,9 @@
 
                 const formData = await formResponse.json();
                 if (!formResponse.ok) throw new Error(formData.error);
-
                 questionnaireData = formData.form;
 
-                // Start a questionnaire run
+                // Start or get existing run
                 const runResponse = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
                     method: 'POST',
                     headers: {
@@ -222,27 +297,45 @@
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                     },
                     body: JSON.stringify({
-                        action: 'startRun',
+                        action: loadExisting ? 'getExistingRun' : 'startRun',
                         userId: currentUser.id
                     })
                 });
 
                 const runData = await runResponse.json();
-                console.log('Questionnaire response:', runData);
-                
                 if (!runResponse.ok) throw new Error(runData.error);
-
                 currentRun = runData.run;
-                renderFullQuestionnaire();
+
+                // Load existing answers if continuing
+                let existingAnswers = {};
+                if (loadExisting && runData.answers) {
+                    runData.answers.forEach(answer => {
+                        const question = findQuestionById(answer.question_id);
+                        if (question) {
+                            existingAnswers[question.key] = answer.selected_values || answer.text_value;
+                        }
+                    });
+                }
+
+                renderFullQuestionnaire(existingAnswers);
 
             } catch (error) {
-                console.error('Questionnaire error:', error);
+                console.error('Error loading questionnaire:', error);
                 document.getElementById('questionnaireContainer').innerHTML = 
-                    `<div class="result error">Error loading questionnaire: ${error.message}</div>`;
+                    `<div class="result error">Error: ${error.message}</div>`;
             }
         }
 
-        function renderFullQuestionnaire() {
+        function findQuestionById(questionId) {
+            for (const section of questionnaireData.sections) {
+                for (const question of section.questions) {
+                    if (question.id === questionId) return question;
+                }
+            }
+            return null;
+        }
+
+        function renderFullQuestionnaire(existingAnswers = {}) {
             const container = document.getElementById('questionnaireContainer');
             let html = '<form id="questionnaireForm">';
 
@@ -254,19 +347,24 @@
                     </h4>`;
                 
                 section.questions.forEach(question => {
-                    html += renderQuestion(question);
+                    html += renderQuestion(question, existingAnswers[question.key]);
                 });
                 
                 html += '</div>';
             });
 
-            html += '<button type="button" onclick="saveFullQuestionnaire()" style="margin-top: 30px; padding: 15px 30px; font-size: 16px;">Guardar Cuestionario Completo</button>';
+            html += `
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="button" onclick="saveQuestionnaire('draft')" style="background: #6c757d;">Save Draft</button>
+                    <button type="button" onclick="saveQuestionnaire('submit')" style="padding: 15px 30px; font-size: 16px;">Complete Questionnaire</button>
+                </div>
+            `;
             html += '</form>';
 
             container.innerHTML = html;
         }
 
-        function renderQuestion(question) {
+        function renderQuestion(question, existingValue = null) {
             let html = `<div class="form-group" style="margin-bottom: 20px;">
                 <label style="font-weight: bold; margin-bottom: 8px; display: block;">
                     ${question.prompt}${question.required ? ' *' : ''}
@@ -278,9 +376,10 @@
                 case 'single':
                     html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
                     options.forEach(option => {
+                        const checked = existingValue === option ? 'checked' : '';
                         html += `
                             <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                <input type="radio" name="q_${question.key}" value="${option}" style="width: auto; margin-right: 8px;"> ${option}
+                                <input type="radio" name="q_${question.key}" value="${option}" ${checked} style="width: auto; margin-right: 8px;"> ${option}
                             </label>`;
                     });
                     html += '</div>';
@@ -289,16 +388,18 @@
                 case 'multi':
                     html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
                     options.forEach(option => {
+                        const checked = (Array.isArray(existingValue) && existingValue.includes(option)) ? 'checked' : '';
                         html += `
                             <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
-                                <input type="checkbox" name="q_${question.key}" value="${option}" style="width: auto; margin-right: 8px;"> ${option}
+                                <input type="checkbox" name="q_${question.key}" value="${option}" ${checked} style="width: auto; margin-right: 8px;"> ${option}
                             </label>`;
                     });
                     html += '</div>';
                     break;
 
                 case 'text':
-                    html += `<input type="text" name="q_${question.key}" placeholder="Ingresa tu respuesta" style="width: 100%; padding: 8px;">`;
+                    const value = existingValue || '';
+                    html += `<input type="text" name="q_${question.key}" value="${value}" placeholder="Ingresa tu respuesta" style="width: 100%; padding: 8px;">`;
                     break;
             }
 
@@ -306,7 +407,7 @@
             return html;
         }
 
-        async function saveFullQuestionnaire() {
+        async function saveQuestionnaire(type = 'submit') {
             const form = document.getElementById('questionnaireForm');
             const formData = new FormData(form);
             const answers = [];
@@ -317,7 +418,6 @@
                     const questionKey = `q_${question.key}`;
                     
                     if (question.type === 'multi') {
-                        // Handle checkboxes
                         const selectedValues = [];
                         const checkboxes = form.querySelectorAll(`input[name="${questionKey}"]:checked`);
                         checkboxes.forEach(cb => selectedValues.push(cb.value));
@@ -330,7 +430,6 @@
                             });
                         }
                     } else {
-                        // Handle radio buttons and text inputs
                         const value = formData.get(questionKey);
                         if (value) {
                             answers.push({
@@ -353,19 +452,26 @@
                     body: JSON.stringify({
                         action: 'saveAnswers',
                         runId: currentRun.id,
-                        answers: answers
+                        answers: answers,
+                        status: type === 'submit' ? 'submitted' : 'in_progress'
                     })
                 });
 
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                document.getElementById('questionnaireResult').innerHTML = 
-                    '<div class="result success">Cuestionario completo guardado exitosamente!</div>';
+                if (type === 'submit') {
+                    document.getElementById('questionnaireResult').innerHTML = 
+                        '<div class="result success">Questionnaire completed successfully!</div>';
+                    setTimeout(() => loadQuestionnaire(), 2000);
+                } else {
+                    document.getElementById('questionnaireResult').innerHTML = 
+                        '<div class="result success">Draft saved! You can continue later.</div>';
+                }
 
             } catch (error) {
                 document.getElementById('questionnaireResult').innerHTML = 
-                    `<div class="result error">Error guardando cuestionario: ${error.message}</div>`;
+                    `<div class="result error">Error saving: ${error.message}</div>`;
             }
         }
 
