@@ -6,33 +6,47 @@
     <title>Fitbot - AI Fitness Assistant</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; transition: all 0.3s ease; }
+        body.dark { background: #1a1a1a; color: #e0e0e0; }
         
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
+        .header { text-align: center; margin-bottom: 30px; position: relative; }
         .header h1 { color: #333; margin-bottom: 10px; }
+        body.dark .header h1 { color: #e0e0e0; }
+        
+        .theme-toggle { position: absolute; top: 0; right: 0; background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+        .theme-toggle:hover { background: #0056b3; }
+        body.dark .theme-toggle { background: #ffc107; color: #000; }
+        body.dark .theme-toggle:hover { background: #e0a800; }
         
         /* Login/Register Screen */
         .auth-screen { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body.dark .auth-screen { background: #2d2d2d; }
         .auth-tabs { display: flex; margin-bottom: 20px; }
         .auth-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; border-bottom: 2px solid #ddd; }
+        body.dark .auth-tab { border-bottom-color: #555; color: #e0e0e0; }
         .auth-tab.active { border-bottom-color: #007bff; color: #007bff; }
         
         /* Main App */
         .main-app { display: none; }
         .user-info { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        body.dark .user-info { background: #2d2d2d; }
         
         .tabs { display: flex; background: white; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        body.dark .tabs { background: #2d2d2d; }
         .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; border-right: 1px solid #ddd; }
+        body.dark .tab { border-right-color: #555; color: #e0e0e0; }
         .tab:last-child { border-right: none; }
         .tab.active { background: #007bff; color: white; }
         
         .tab-content { display: none; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body.dark .tab-content { background: #2d2d2d; }
         .tab-content.active { display: block; }
         
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        body.dark input { background: #3d3d3d; border-color: #555; color: #e0e0e0; }
         button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background: #0056b3; }
         button:disabled { background: #ccc; cursor: not-allowed; }
@@ -55,6 +69,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
             <h1>🏋️ Fitbot</h1>
             <p>Your AI-Powered Fitness Assistant</p>
         </div>
@@ -69,10 +84,11 @@
             <!-- Login Form -->
             <div id="loginForm">
                 <h3>Welcome Back!</h3>
-                <p style="margin-bottom: 20px; color: #666;">Enter your user ID to continue</p>
+                <p style="margin-bottom: 20px; color: #666;">Enter your email to continue</p>
                 <div class="form-group">
-                    <label for="loginUserId">User ID:</label>
-                    <input type="number" id="loginUserId" placeholder="Enter your user ID">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" list="emailList" autocomplete="email">
+                    <datalist id="emailList"></datalist>
                 </div>
                 <button onclick="login()">Login</button>
             </div>
@@ -81,6 +97,10 @@
             <div id="registerForm" style="display: none;">
                 <h3>Create Your Profile</h3>
                 <p style="margin-bottom: 20px; color: #666;">Tell us about yourself to get started</p>
+                <div class="form-group">
+                    <label for="regEmail">Email:</label>
+                    <input type="email" id="regEmail" required>
+                </div>
                 <div class="form-group">
                     <label for="regName">Name:</label>
                     <input type="text" id="regName" required>
@@ -118,43 +138,25 @@
             </div>
 
             <div class="tabs">
-                <div class="tab active" onclick="switchTab('bmi')">BMI Calculator</div>
+                <div class="tab active" onclick="switchTab('questionnaire')">Questionnaire</div>
                 <div class="tab" onclick="switchTab('ai')">AI Fitness Advisor</div>
-                <div class="tab" onclick="switchTab('profile')">Update Profile</div>
             </div>
 
-            <!-- BMI Calculator Tab -->
-            <div id="bmiTab" class="tab-content active">
-                <h3>BMI Calculator</h3>
-                <button onclick="calculateBMI()">Calculate My BMI</button>
-                <div id="bmiResult"></div>
+            <!-- Questionnaire Tab -->
+            <div id="questionnaireTab" class="tab-content active">
+                <h3>Cuestionario inicial</h3>
+                <div id="questionnaireContainer">
+                    <div class="result info">Loading questionnaire...</div>
+                </div>
+                <div id="questionnaireResult"></div>
             </div>
 
             <!-- AI Fitness Advisor Tab -->
             <div id="aiTab" class="tab-content">
                 <h3>AI Fitness Advisor</h3>
-                <p>Get personalized fitness recommendations based on your profile and BMI.</p>
+                <p>Get personalized fitness recommendations based on your questionnaire responses.</p>
                 <button onclick="getAIRecommendations()">Get AI Recommendations</button>
                 <div id="aiResult"></div>
-            </div>
-
-            <!-- Profile Update Tab -->
-            <div id="profileTab" class="tab-content">
-                <h3>Update Your Profile</h3>
-                <div class="form-group">
-                    <label for="updateWeight">Weight (kg):</label>
-                    <input type="number" id="updateWeight" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label for="updateHeight">Height (cm):</label>
-                    <input type="number" id="updateHeight" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label for="updateAge">Age:</label>
-                    <input type="number" id="updateAge">
-                </div>
-                <button onclick="updateProfile()">Update Profile</button>
-                <div id="profileResult"></div>
             </div>
         </div>
     </div>
@@ -166,6 +168,242 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = null;
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                button.textContent = '🌙 Dark';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark');
+                button.textContent = '☀️ Light';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Questionnaire functions for new schema
+        let currentRun = null;
+        let questionnaireData = null;
+
+        async function loadQuestionnaire() {
+            try {
+                console.log('Loading questionnaire for user:', currentUser);
+                
+                if (!currentUser || !currentUser.id) {
+                    throw new Error('No user logged in');
+                }
+
+                // Get full form structure
+                const formResponse = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'getForm'
+                    })
+                });
+
+                const formData = await formResponse.json();
+                if (!formResponse.ok) throw new Error(formData.error);
+
+                questionnaireData = formData.form;
+
+                // Start a questionnaire run
+                const runResponse = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'startRun',
+                        userId: currentUser.id
+                    })
+                });
+
+                const runData = await runResponse.json();
+                console.log('Questionnaire response:', runData);
+                
+                if (!runResponse.ok) throw new Error(runData.error);
+
+                currentRun = runData.run;
+                renderFullQuestionnaire();
+
+            } catch (error) {
+                console.error('Questionnaire error:', error);
+                document.getElementById('questionnaireContainer').innerHTML = 
+                    `<div class="result error">Error loading questionnaire: ${error.message}</div>`;
+            }
+        }
+
+        function renderFullQuestionnaire() {
+            const container = document.getElementById('questionnaireContainer');
+            let html = '<form id="questionnaireForm">';
+
+            // Render all sections and questions
+            questionnaireData.sections.forEach(section => {
+                html += `<div class="form-group">
+                    <h4 style="color: #007bff; margin: 20px 0 15px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                        ${section.title}
+                    </h4>`;
+                
+                section.questions.forEach(question => {
+                    html += renderQuestion(question);
+                });
+                
+                html += '</div>';
+            });
+
+            html += '<button type="button" onclick="saveFullQuestionnaire()" style="margin-top: 30px; padding: 15px 30px; font-size: 16px;">Guardar Cuestionario Completo</button>';
+            html += '</form>';
+
+            container.innerHTML = html;
+        }
+
+        function renderQuestion(question) {
+            let html = `<div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-weight: bold; margin-bottom: 8px; display: block;">
+                    ${question.prompt}${question.required ? ' *' : ''}
+                </label>`;
+
+            const options = question.options || [];
+
+            switch (question.type) {
+                case 'single':
+                    html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                    options.forEach(option => {
+                        html += `
+                            <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="q_${question.key}" value="${option}" style="width: auto; margin-right: 8px;"> ${option}
+                            </label>`;
+                    });
+                    html += '</div>';
+                    break;
+
+                case 'multi':
+                    html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                    options.forEach(option => {
+                        html += `
+                            <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox" name="q_${question.key}" value="${option}" style="width: auto; margin-right: 8px;"> ${option}
+                            </label>`;
+                    });
+                    html += '</div>';
+                    break;
+
+                case 'text':
+                    html += `<input type="text" name="q_${question.key}" placeholder="Ingresa tu respuesta" style="width: 100%; padding: 8px;">`;
+                    break;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        async function saveFullQuestionnaire() {
+            const form = document.getElementById('questionnaireForm');
+            const formData = new FormData(form);
+            const answers = [];
+
+            // Process all questions
+            questionnaireData.sections.forEach(section => {
+                section.questions.forEach(question => {
+                    const questionKey = `q_${question.key}`;
+                    
+                    if (question.type === 'multi') {
+                        // Handle checkboxes
+                        const selectedValues = [];
+                        const checkboxes = form.querySelectorAll(`input[name="${questionKey}"]:checked`);
+                        checkboxes.forEach(cb => selectedValues.push(cb.value));
+                        
+                        if (selectedValues.length > 0) {
+                            answers.push({
+                                run_id: currentRun.id,
+                                question_id: question.id,
+                                selected_values: selectedValues
+                            });
+                        }
+                    } else {
+                        // Handle radio buttons and text inputs
+                        const value = formData.get(questionKey);
+                        if (value) {
+                            answers.push({
+                                run_id: currentRun.id,
+                                question_id: question.id,
+                                text_value: value
+                            });
+                        }
+                    }
+                });
+            });
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/questionnaire`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'saveAnswers',
+                        runId: currentRun.id,
+                        answers: answers
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                document.getElementById('questionnaireResult').innerHTML = 
+                    '<div class="result success">Cuestionario completo guardado exitosamente!</div>';
+
+            } catch (error) {
+                document.getElementById('questionnaireResult').innerHTML = 
+                    `<div class="result error">Error guardando cuestionario: ${error.message}</div>`;
+            }
+        }
+
+        // Load saved theme and emails
+        window.addEventListener('load', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-toggle').textContent = '☀️ Light';
+            }
+            loadSavedEmails();
+        });
+
+        // Email autocomplete functions
+        function loadSavedEmails() {
+            const savedEmails = JSON.parse(localStorage.getItem('fitbot_emails') || '[]');
+            const datalist = document.getElementById('emailList');
+            datalist.innerHTML = '';
+            
+            savedEmails.forEach(email => {
+                const option = document.createElement('option');
+                option.value = email;
+                datalist.appendChild(option);
+            });
+        }
+
+        function saveEmail(email) {
+            const savedEmails = JSON.parse(localStorage.getItem('fitbot_emails') || '[]');
+            if (!savedEmails.includes(email)) {
+                savedEmails.push(email);
+                // Keep only last 10 emails
+                if (savedEmails.length > 10) {
+                    savedEmails.shift();
+                }
+                localStorage.setItem('fitbot_emails', JSON.stringify(savedEmails));
+                loadSavedEmails();
+            }
+        }
 
         // Auth functions
         function switchAuthTab(tab) {
@@ -182,53 +420,55 @@
         }
 
         async function login() {
-            const userId = document.getElementById('loginUserId').value;
-            if (!userId) {
-                showAuthResult('Please enter a user ID', 'error');
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                showAuthResult('Please enter your email', 'error');
                 return;
             }
 
             try {
                 const { data, error } = await supabase
-                    .from('Users')
+                    .from('app_users')
                     .select('*')
-                    .eq('id', userId)
+                    .eq('email', email)
                     .single();
 
                 if (error) throw error;
 
                 currentUser = data;
+                saveEmail(email); // Save successful login email
                 showMainApp();
             } catch (error) {
-                showAuthResult('User not found. Please check your ID or register.', 'error');
+                showAuthResult('Email not found. Please check your email or register.', 'error');
             }
         }
 
         async function register() {
-            const userData = {
-                name: document.getElementById('regName').value,
-                surname: document.getElementById('regSurname').value,
-                age: document.getElementById('regAge').value ? parseInt(document.getElementById('regAge').value) : null,
-                weight: document.getElementById('regWeight').value ? parseFloat(document.getElementById('regWeight').value) : null,
-                height: document.getElementById('regHeight').value ? parseFloat(document.getElementById('regHeight').value) : null
-            };
+            const email = document.getElementById('regEmail').value.trim();
+            const name = document.getElementById('regName').value;
+            const surname = document.getElementById('regSurname').value;
 
-            if (!userData.name || !userData.surname) {
-                showAuthResult('Name and surname are required', 'error');
+            if (!email || !name || !surname) {
+                showAuthResult('Email, name and surname are required', 'error');
                 return;
             }
 
             try {
                 const { data, error } = await supabase
-                    .from('Users')
-                    .insert([userData])
+                    .from('app_users')
+                    .insert([{ email }])
                     .select()
                     .single();
 
                 if (error) throw error;
 
                 currentUser = data;
-                showAuthResult(`Profile created! Your user ID is: ${data.id}`, 'success');
+                // Store name/surname in localStorage since app_users only has email
+                localStorage.setItem(`user_${data.id}_name`, name);
+                localStorage.setItem(`user_${data.id}_surname`, surname);
+                
+                saveEmail(email);
+                showAuthResult(`Profile created! Welcome ${name}!`, 'success');
                 setTimeout(() => showMainApp(), 2000);
             } catch (error) {
                 showAuthResult('Error creating profile: ' + error.message, 'error');
@@ -239,21 +479,25 @@
             currentUser = null;
             document.getElementById('authScreen').style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('loginUserId').value = '';
+            document.getElementById('loginEmail').value = '';
             document.getElementById('authResult').innerHTML = '';
         }
 
         function showMainApp() {
+            console.log('showMainApp called with user:', currentUser);
+            
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             
-            document.getElementById('userName').textContent = `${currentUser.name} ${currentUser.surname}`;
-            document.getElementById('userDetails').textContent = `ID: ${currentUser.id}`;
+            // Get name from localStorage since app_users only has email
+            const name = localStorage.getItem(`user_${currentUser.id}_name`) || 'User';
+            const surname = localStorage.getItem(`user_${currentUser.id}_surname`) || '';
             
-            // Populate update form
-            document.getElementById('updateWeight').value = currentUser.weight || '';
-            document.getElementById('updateHeight').value = currentUser.height || '';
-            document.getElementById('updateAge').value = currentUser.age || '';
+            document.getElementById('userName').textContent = `${name} ${surname}`;
+            document.getElementById('userDetails').textContent = `Welcome back!`;
+            
+            // Load questionnaire data
+            loadQuestionnaire();
         }
 
         function showAuthResult(message, type) {
