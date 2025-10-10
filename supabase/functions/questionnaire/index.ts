@@ -17,7 +17,81 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, userId, answers, runId } = await req.json()
+    const { action, userId, answers, runId, status } = await req.json()
+
+    if (action === 'getStatus') {
+      // Check user's questionnaire status
+      const { data: form, error: formError } = await supabaseClient
+        .schema('questionnaire')
+        .from('forms')
+        .select('id')
+        .eq('slug', 'onboarding_v1')
+        .single()
+
+      if (formError) throw formError
+
+      const { data: runs, error: runError } = await supabaseClient
+        .schema('questionnaire')
+        .from('runs')
+        .select('id, status, started_at, submitted_at')
+        .eq('user_id', userId)
+        .eq('form_id', form.id)
+        .order('started_at', { ascending: false })
+        .limit(1)
+
+      if (runError) throw runError
+
+      if (!runs || runs.length === 0) {
+        return new Response(JSON.stringify({ status: 'not_started' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const run = runs[0]
+      return new Response(JSON.stringify({ 
+        status: run.status === 'submitted' ? 'completed' : 'in_progress',
+        run: run
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (action === 'getExistingRun') {
+      // Get existing run with answers
+      const { data: form, error: formError } = await supabaseClient
+        .schema('questionnaire')
+        .from('forms')
+        .select('id')
+        .eq('slug', 'onboarding_v1')
+        .single()
+
+      if (formError) throw formError
+
+      const { data: run, error: runError } = await supabaseClient
+        .schema('questionnaire')
+        .from('runs')
+        .select('id, status, started_at, submitted_at')
+        .eq('user_id', userId)
+        .eq('form_id', form.id)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (runError) throw runError
+
+      // Get existing answers
+      const { data: answers, error: answersError } = await supabaseClient
+        .schema('questionnaire')
+        .from('answers')
+        .select('question_id, text_value, selected_values')
+        .eq('run_id', run.id)
+
+      if (answersError) throw answersError
+
+      return new Response(JSON.stringify({ run: run, answers: answers }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     if (action === 'getForm') {
       // Get complete form structure
@@ -115,7 +189,7 @@ serve(async (req) => {
     }
 
     if (action === 'saveAnswers') {
-      console.log('saveAnswers called with runId:', runId, 'answers:', answers);
+      console.log('saveAnswers called with runId:', runId, 'answers:', answers, 'status:', status);
       
       // Delete existing answers for this run
       await supabaseClient
@@ -134,11 +208,16 @@ serve(async (req) => {
         if (error) throw error
       }
 
-      // Mark run as submitted
+      // Update run status
+      const updateData = { status: status || 'in_progress' }
+      if (status === 'submitted') {
+        updateData.submitted_at = new Date().toISOString()
+      }
+
       await supabaseClient
         .schema('questionnaire')
         .from('runs')
-        .update({ status: 'submitted', submitted_at: new Date().toISOString() })
+        .update(updateData)
         .eq('id', runId)
 
       return new Response(JSON.stringify({ success: true }), {
