@@ -1,0 +1,180 @@
+curl -X POST "https://clklsnwskbluijnyjowa.supabase.co/rest/v1/customers_personal_info" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Content-Type: application/json" -d "{\"Name\": \"John\", \"LastName\": \"Doe\", \"Email\": \"john.doe@example.com\", \"Age\": 30, \"Height\": 180.5, \"Weight\": 75.0, \"Objective\": \"Lose weight\"}"
+
+curl -X POST "https://clklsnwskbluijnyjowa.supabase.co/rest/v1/customers_personal_info" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Content-Type: application/json" -d "{\"Name\": \"Alice\", \"LastName\": \"Smith\", \"Email\": \"alice.smith@example.com\", \"Age\": 27, \"Height\": 165.2, \"Weight\": 60.5, \"Objective\": \"Build muscle\"}"
+
+curl -X POST "https://clklsnwskbluijnyjowa.supabase.co/rest/v1/customers_personal_info" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Content-Type: application/json" -d "{\"Name\": \"Felix\", \"LastName\": \"Perez\", \"Email\": \"Feliche@example.com\", \"Age\": 45, \"Height\": 177, \"Weight\": 69, \"Objective\": \"Gain Weight\"}"
+
+curl -X POST "https://clklsnwskbluijnyjowa.supabase.co/rest/v1/customers_personal_info" -H "Content-Type: application/json" -d "{\"Name\": \"Felix\", \"LastName\": \"Perez\", \"Email\": \"Feliche@example.com\", \"Age\": 45, \"Height\": 177, \"Weight\": 69, \"Objective\": \"Gain Weight\"}"
+
+curl -X GET "https://clklsnwskbluijnyjowa.supabase.co/rest/v1/customers_personal_info" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsa2xzbndza2JsdWlqbnlqb3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MTQ2MTMsImV4cCI6MjA2MTE5MDYxM30.h23xwoNAzJ3Mh5U1SE06Qvg5D1FH4PTeRjCI03u0kXc"
+
+
+
+
+
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Supabase Fitness Assistant",
+    "description": "Insert customer personal information into the Supabase database.",
+    "version": "v1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://clklsnwskbluijnyjowa.supabase.co/rest/v1"
+    }
+  ],
+  "paths": {
+    "/customers_personal_info": {
+      "post": {
+        "description": "Insert a new customer personal info into the customers_personal_info table.",
+        "operationId": "insertCustomerPersonalInfo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerPersonalInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Customer personal info successfully added."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CustomerPersonalInfo": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "LastName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Age": {
+            "type": "integer"
+          },
+          "Height": {
+            "type": "number"
+          },
+          "Weight": {
+            "type": "number"
+          },
+          "Objective": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "Name",
+          "LastName",
+          "Email",
+          "Age",
+          "Height",
+          "Weight",
+          "Objective"
+        ]
+      }
+    }
+  }
+}
+
+
+
+
+
+
+## WORKING:
+openapi: 3.1.0
+info:
+  title: Customers Personal Info API
+  description: API for adding and retrieving customer personal information. (Public database, requires API Key in header)
+  version: 1.0.0
+servers:
+  - url: https://clklsnwskbluijnyjowa.supabase.co/rest/v1
+    description: Supabase production server
+paths:
+  /customers_personal_info:
+    post:
+      tags:
+        - customers
+      summary: Create a new customer personal info record
+      operationId: createCustomerPersonalInfo
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerPersonalInfo"
+      responses:
+        "201":
+          description: Customer personal info created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerPersonalInfo"
+        "400":
+          description: Invalid input
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
+  schemas:
+    CustomerPersonalInfo:
+      type: object
+      required:
+        - Name
+        - LastName
+        - Email
+        - Age
+        - Height
+        - Weight
+        - Objective
+      properties:
+        Name:
+          type: string
+          description: First name of the customer
+        LastName:
+          type: string
+          description: Last name of the customer
+        Email:
+          type: string
+          format: email
+          description: Email address of the customer
+        Age:
+          type: integer
+          description: Age of the customer
+        Height:
+          type: integer
+          description: Height of the customer in centimeters
+        Weight:
+          type: integer
+          description: Weight of the customer in kilograms
+        Objective:
+          type: string
+          description: Fitness or health objective of the customer
