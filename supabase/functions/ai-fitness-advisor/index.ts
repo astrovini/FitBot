@@ -88,7 +88,7 @@ Keep it practical and actionable.`
           role: 'user',
           content: prompt
         }],
-        max_tokens: testMode ? 50 : 500,
+        max_tokens: testMode ? 50 : 1500,
         temperature: 0.7
       })
     })
